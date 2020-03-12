@@ -64,4 +64,12 @@ public class MainActivity extends AppCompatActivity {
                 .setDefaults(NotificationCompat.DEFAULT_ALL);
         return notifyBuilder;
     }
+
+    public void updateNotification(View view) {
+
+    }
+
+    public void cancelNotification(View view) {
+        mNotifyManager.cancel(NOTIFICATION_ID);
+    }
 }
