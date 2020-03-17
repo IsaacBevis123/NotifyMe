@@ -21,12 +21,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     private static final String ACTION_UPDATE_NOTIFICATION = "com.example.notifyme.ACTION_UPDATE_NOTIFICATION";
+    private static final String ACTION_CLOSE_NOTIFICATION = "com.example.notifyme.ACTION_CLOSE_NOTIFICATION";
     private NotificationManager mNotifyManager;
     private static final int NOTIFICATION_ID = 0;
     private Button button_notify;
     private Button button_update;
     private Button button_cancel;
     private NotificationReceiver mReceiver = new NotificationReceiver();
+    private NotificationCloser mCloser = new NotificationCloser();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         createNotificationChannel();
 
         registerReceiver(mReceiver, new IntentFilter(ACTION_UPDATE_NOTIFICATION));
+        registerReceiver(mCloser, new IntentFilter(ACTION_CLOSE_NOTIFICATION));
 
         button_notify = findViewById(R.id.notify);
         button_update = findViewById(R.id.update);
@@ -47,8 +50,13 @@ public class MainActivity extends AppCompatActivity {
     public void sendNotification(View view) {
         Intent updateIntent = new Intent(ACTION_UPDATE_NOTIFICATION);
         PendingIntent updatePendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_ID, updateIntent, PendingIntent.FLAG_ONE_SHOT);
+
+        Intent closeIntent = new Intent(ACTION_CLOSE_NOTIFICATION);
+        PendingIntent closePendingIntent = PendingIntent.getBroadcast(this, NOTIFICATION_ID, closeIntent, PendingIntent.FLAG_ONE_SHOT);
+
         NotificationCompat.Builder notifyBuilder = getNotificationBuilder();
         notifyBuilder.addAction(R.drawable.ic_update, "Update Notification", updatePendingIntent);
+        notifyBuilder.setDeleteIntent(closePendingIntent);
         mNotifyManager.notify(NOTIFICATION_ID, notifyBuilder.build());
 
         setNotificationButtonState(false, true, true);
@@ -126,6 +134,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent){
             updateNotification(getCurrentFocus());
+        }
+    }
+
+    public class NotificationCloser extends BroadcastReceiver{
+        public NotificationCloser(){}
+
+        @Override
+        public void onReceive(Context context, Intent intent){
+            cancelNotification(getCurrentFocus());
         }
     }
 }
